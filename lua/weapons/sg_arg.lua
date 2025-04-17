@@ -36,13 +36,34 @@ function SWEP:CanSecondaryAttack() return false end
 function SWEP:Holster() return true end
 function SWEP:ShouldDropOnDie() return true end
 
-SWEP.IronSightsPos = Vector(-15,-10,-10)
-SWEP.IronSightsAng = Vector(-85,180,90)
+function SWEP:Initialize()
+    timer.Simple(0.01,function()
+        if SERVER then
+            if(!util.IsValidModel("models/cryptalchemy/humans/weapons/replicator_disruptor.mdl")) then
+                self:GetOwner():SendLua("GAMEMODE:AddNotify(\"Missing Replicator Disruptor Gun Model! Check your chat!\", NOTIFY_ERROR, 8); surface.PlaySound( \"buttons/button2.wav\" )")
+                self:GetOwner():PrintMessage(HUD_PRINTTALK,"The Server is missing the Replicator Disruptor addon, install it at https://steamcommunity.com/sharedfiles/filedetails/?id=1125552865")
+                self:Remove()
+    
+                return
+            end
+        end
+    end)
+    
+    if(self.SetHoldType) then
+        self:SetHoldType("pistol")
+    end
+
+    self:DrawShadow(false)
+
+    self.IronSightsPos = Vector(-15,-10,-10)
+    self.IronSightsAng = Vector(-85,180,90)
+    self.IronX = Vector(0,0,0)
+end
 
 function SWEP:GetViewModelPosition(EyePos, EyeAng)
 	local Mul = 1.0
 
-	local Offset = self.IronSightsPos
+	local Offset = self.IronSightsPos+self.IronX
 
 	if (self.IronSightsAng) then
         EyeAng = EyeAng * 1
@@ -63,14 +84,6 @@ function SWEP:GetViewModelPosition(EyePos, EyeAng)
 	return EyePos, EyeAng
 end
 
-function SWEP:Initialize()
-    if(self.SetHoldType) then
-        self:SetHoldType("pistol")
-    end
-
-    self:DrawShadow(false)
-end
-
 if SERVER then
     function SWEP:PrimaryAttack()
         self:SetNextPrimaryFire(CurTime()+2)
@@ -80,23 +93,43 @@ if SERVER then
         timer.Simple(0.01,function() --i dont know why, but the sound only works in a timer
             self:EmitSound("stargate/arg_fire.mp3",75,100,1)
         end)
-        
-        timer.Simple(0.1,function()
-            local direction = ply:GetAimVector()
+   
+        local direction = ply:GetAimVector()
 
-            local ent = ents.Create("sg_arg_projectile")
-            ent:SetOwner(ply)
-            ent:Initialize()
-            ent:SetPos(ply:EyePos() + Vector(10,5,-5))
-            ent:SetAngles(ply:EyeAngles())
-            ent:SetColor(Color(255,255,255,0))
+        local ent = ents.Create("sg_arg_projectile")
+        ent:SetOwner(ply)
+        ent:Initialize()
+        ent:SetPos(ply:EyePos() + Vector(10,5,-5))
+        ent:SetAngles(ply:EyeAngles())
+        ent:SetColor(Color(255,255,255,0))
 
-            local Phys = ent:GetPhysicsObject()
+        local Phys = ent:GetPhysicsObject()
 
-            if(IsValid(Phys)) then
-                Phys:EnableGravity(false)
-                Phys:SetVelocity(direction * 800)
-            end
+        if(IsValid(Phys)) then
+            Phys:EnableGravity(false)
+            Phys:SetVelocity(direction * 800)
+        end
+    end
+else --client
+    function SWEP:PrimaryAttack() --fire anim
+        timer.Simple(0.2,function()
+            local movedir = 0.5
+            local x = 5
+            self.IronX = Vector(x,0,0)
+
+            timer.Create("ARG_FireAnim"..self:EntIndex(),0.01,200,function()
+                x = x + movedir
+                if(x <= 0) then
+                    timer.Remove("ARG_FireAnim"..self:EntIndex())
+                    x = 0
+                    movedir = 0
+                    --self.IronX = Vector(0,0,0)
+                elseif(x >= 10) then
+                    movedir = -0.5
+                end
+
+                self.IronX = Vector(x + movedir,0,0)
+            end)
         end)
     end
 end

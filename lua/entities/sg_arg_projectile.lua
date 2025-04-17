@@ -51,7 +51,7 @@ if SERVER then
 
 			for k,ent in pairs(findent) do
 				if(ent:GetClass() == "replicator_queen" or ent:GetClass() == "replicator_queen_hive" or ent:GetClass() == "replicator_worker" or ent:GetClass() == "replicator_segment") then
-					ent:TakeDamage(200,self:GetOwner(),self)
+					ent:TakeDamage(50,self:GetOwner(),self)
 				end
 			end
 		end)
