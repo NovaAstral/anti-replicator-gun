@@ -1,4 +1,5 @@
 AddCSLuaFile() --Makes it show up in singleplayer
+local SWEP = {Primary = {}, Secondary = {}}
 
 SWEP.PrintName = "Anti Replicator Gun"
 --set it to CAP categories if CAP is installed, else set to normal 'stargate category'
@@ -12,7 +13,6 @@ else
     list.Set("CAP.Weapon", SWEP.PrintName or "", SWEP)
 end
 
-local SWEP = {Primary = {}, Secondary = {}}
 SWEP.Author = "Nova Astral"
 SWEP.Purpose = "Destroy those bugs"
 SWEP.Instructions = "LMB - Fire Anti Replicator Wave"

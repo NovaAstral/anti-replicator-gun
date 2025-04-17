@@ -46,6 +46,14 @@ if SERVER then
 			self:StopARG()
 		end)
 
+		local findent = ents.FindInSphere(self:GetPos(),200) --do it instantly so it gets stuff easier
+
+		for k,ent in pairs(findent) do
+			if(ent:GetClass() == "replicator_queen" or ent:GetClass() == "replicator_queen_hive" or ent:GetClass() == "replicator_worker" or ent:GetClass() == "replicator_segment") then
+				ent:TakeDamage(50,self:GetOwner(),self)
+			end
+		end
+
 		timer.Create("rep_finder"..self:EntIndex(),0.1,0,function()
 			local findent = ents.FindInSphere(self:GetPos(),200)
 
